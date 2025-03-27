@@ -18,7 +18,7 @@ Built with [Streamlit](https://streamlit.io/) and powered by [OpenRouter](https:
 
 ## 🚀 Demo
 
-> Coming soon: [https://pergen.streamlit.app/](https://pergen.streamlit.app)
+> Link: [https://pergen.streamlit.app/](https://pergen.streamlit.app)
 
 ---
 
