@@ -1,4 +1,4 @@
-# 🧠 PerGen – AI-Powered User Persona Generator
+# 🧠 PersonaGen – AI-Powered User Persona Generator
 
 **PersonaGen** is a generative AI tool that transforms raw user research — interviews, surveys, or notes — into structured user personas in seconds.
 
@@ -12,13 +12,13 @@ Built with [Streamlit](https://streamlit.io/) and powered by [OpenRouter](https:
 - 🧠 Powered by multiple LLMs (Mixtral, Command R+, GPT-3.5 Turbo)
 - ✅ Optimized for clarity, tone, and concise output
 - 📋 Expandable, copyable output view
-- ⚡ Live demo-ready (no PDF/export dependencies)
+- ⚡ Live demo-ready (no export dependencies)
 
 ---
 
-## 🚀 Demo
+## 🚀 Live Demo
 
-> Link: [https://pergen.streamlit.app/](https://pergen.streamlit.app)
+🔗 Try it here: [https://pergen.streamlit.app/](https://pergen.streamlit.app/)
 
 ---
 
@@ -63,3 +63,35 @@ This app uses [OpenRouter](https://openrouter.ai/) for multi-model LLM access.
 
 Create a `.env` file in your root directory:
 
+```
+OPENROUTER_API_KEY="your-api-key-here"
+```
+
+If you're using **Streamlit Cloud**, set this under **App > Settings > Secrets**:
+
+```toml
+OPENROUTER_API_KEY = "your-api-key-here"
+```
+
+---
+
+## 📦 Installation
+
+```bash
+git clone https://github.com/yourusername/personagen.git
+cd personagen
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+---
+
+## 🤝 Contribution & Feedback
+
+Feel free to fork this repo, add features, or reach out with suggestions or bugs.
+
+---
+
+## 📄 License
+
+MIT License
