@@ -3,41 +3,39 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 from fpdf import FPDF
-import pyperclip
+from io import BytesIO
 import re
 
 # Load API Key
 load_dotenv()
 api_key = os.getenv("OPENROUTER_API_KEY")
 
-# Configure OpenRouter client
+# OpenRouter client
 client = OpenAI(
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1",
 )
 
-# Streamlit UI config
+# UI setup
 st.set_page_config(page_title="PersonaGen", page_icon="🧠")
-st.title("🧠 PerGen – AI-Powered User Persona Generator")
-st.markdown("Paste user research notes below to generate a structured persona.")
+st.title("🧠 PersonaGen – AI-Powered User Persona Generator")
+st.markdown("Paste user research notes below to generate a structured user persona.")
 
-# Sidebar controls
-st.sidebar.title("⚙️ Settings")
-
+# Model options
 models = {
     "Mixtral (Mistral AI)": "mistralai/mixtral-8x7b-instruct",
-    "Claude 2 (Anthropic)": "anthropic/claude-2"
+    "Command R+ (Cohere)": "cohere/command-r-plus",
+    "GPT-3.5 Turbo": "openai/gpt-3.5-turbo"
 }
 
-model_choice = st.sidebar.selectbox("Choose a model:", list(models.keys()))
+model_choice = st.sidebar.selectbox("Choose a model:", list(models.keys()), index=0)
 selected_model = models[model_choice]
 
-# Input
+# User input
 user_input = st.text_area("✍️ Paste user interview notes, survey results, or feedback here:", height=300)
-
 persona = ""
 
-# Generate
+# Generate persona
 if st.button("Generate Persona"):
     if not user_input.strip():
         st.warning("Please enter some input text.")
@@ -72,7 +70,7 @@ Notes:
             except Exception as e:
                 st.error(f"Something went wrong: {e}")
 
-# Display with clean formatting
+# Display formatted output
 if persona:
     st.markdown("### 👤 **Persona Summary**")
 
@@ -95,26 +93,24 @@ if persona:
 
     st.markdown(formatted)
 
-    # Action buttons
-    col1, col2 = st.columns(2)
+    # Copy-friendly box
+    with st.expander("📋 View & Copy Raw Persona Text"):
+        st.code(persona, language="markdown")
 
-    with col1:
-        if st.button("📋 Copy to Clipboard"):
-            pyperclip.copy(persona)
-            st.success("Copied to clipboard!")
+    # PDF export
+    if st.button("📄 Export to PDF"):
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        for line in persona.split('\n'):
+            pdf.multi_cell(0, 10, line)
+        pdf_buffer = BytesIO()
+        pdf.output(pdf_buffer)
+        pdf_buffer.seek(0)
 
-    with col2:
-        if st.button("📄 Export to PDF"):
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", size=12)
-            for line in persona.split('\n'):
-                pdf.multi_cell(0, 10, line)
-            pdf.output("persona_output.pdf")
-            with open("persona_output.pdf", "rb") as f:
-                st.download_button(
-                    label="Download Persona PDF",
-                    data=f,
-                    file_name="persona_output.pdf",
-                    mime="application/pdf"
-                )
+        st.download_button(
+            label="Download Persona PDF",
+            data=pdf_buffer,
+            file_name="persona_output.pdf",
+            mime="application/pdf"
+        )
