@@ -10,7 +10,7 @@ import re
 load_dotenv()
 api_key = os.getenv("OPENROUTER_API_KEY")
 
-# OpenRouter client
+# Configure OpenRouter client
 client = OpenAI(
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1",
@@ -21,7 +21,7 @@ st.set_page_config(page_title="PersonaGen", page_icon="🧠")
 st.title("🧠 PersonaGen – AI-Powered User Persona Generator")
 st.markdown("Paste user research notes below to generate a structured persona.")
 
-# Model options
+# Sidebar model selection
 models = {
     "Mixtral (Mistral AI)": "mistralai/mixtral-8x7b-instruct",
     "Command R+ (Cohere)": "cohere/command-r-plus",
@@ -66,15 +66,27 @@ Notes:
                 )
 
                 if response and hasattr(response, "choices") and response.choices:
-                    persona = response.choices[0].message.content
-                    st.success("✅ Persona generated!")
+                    choice = response.choices[0]
+
+                    # Safely extract output depending on model response structure
+                    if hasattr(choice, "message") and hasattr(choice.message, "content"):
+                        persona = choice.message.content
+                    elif hasattr(choice, "text"):
+                        persona = choice.text
+                    else:
+                        persona = None
+
+                    if persona:
+                        st.success("✅ Persona generated!")
+                    else:
+                        st.error("❌ No content found in the response. Try another model or input.")
                 else:
-                    st.error("❌ No content returned. Please try again or check your model and key.")
+                    st.error("❌ No response choices received.")
 
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
-# Display output
+# Display formatted persona
 if persona:
     st.markdown("### 👤 **Persona Summary**")
 
@@ -96,24 +108,29 @@ if persona:
 
     st.markdown(formatted)
 
-    # Copy-friendly view
+    # Expandable copy view
     with st.expander("📋 View & Copy Raw Persona Text"):
         st.code(persona, language="markdown")
 
-    # PDF export
+    # Export to PDF button
     if st.button("📄 Export to PDF"):
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        for line in persona.split('\n'):
-            pdf.multi_cell(0, 10, line)
-        pdf_buffer = BytesIO()
-        pdf.output(pdf_buffer)
-        pdf_buffer.seek(0)
+        try:
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            for line in persona.split('\n'):
+                pdf.multi_cell(0, 10, line)
 
-        st.download_button(
-            label="Download Persona PDF",
-            data=pdf_buffer,
-            file_name="persona_output.pdf",
-            mime="application/pdf"
-        )
+            # Use BytesIO for in-memory streaming
+            pdf_buffer = BytesIO()
+            pdf.output(pdf_buffer)
+            pdf_buffer.seek(0)
+
+            st.download_button(
+                label="⬇️ Download Persona PDF",
+                data=pdf_buffer,
+                file_name="persona_output.pdf",
+                mime="application/pdf"
+            )
+        except Exception as e:
+            st.error(f"PDF export failed: {e}")
