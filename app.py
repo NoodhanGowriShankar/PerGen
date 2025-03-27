@@ -16,10 +16,10 @@ client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
 )
 
-# UI setup
+# Streamlit UI setup
 st.set_page_config(page_title="PersonaGen", page_icon="🧠")
 st.title("🧠 PersonaGen – AI-Powered User Persona Generator")
-st.markdown("Paste user research notes below to generate a structured user persona.")
+st.markdown("Paste user research notes below to generate a structured persona.")
 
 # Model options
 models = {
@@ -27,7 +27,6 @@ models = {
     "Command R+ (Cohere)": "cohere/command-r-plus",
     "GPT-3.5 Turbo": "openai/gpt-3.5-turbo"
 }
-
 model_choice = st.sidebar.selectbox("Choose a model:", list(models.keys()), index=0)
 selected_model = models[model_choice]
 
@@ -65,12 +64,17 @@ Notes:
                     ],
                     temperature=0.7
                 )
-                persona = response.choices[0].message.content
-                st.success("✅ Persona generated!")
-            except Exception as e:
-                st.error(f"Something went wrong: {e}")
 
-# Display formatted output
+                if response and hasattr(response, "choices") and response.choices:
+                    persona = response.choices[0].message.content
+                    st.success("✅ Persona generated!")
+                else:
+                    st.error("❌ No content returned. Please try again or check your model and key.")
+
+            except Exception as e:
+                st.error(f"❌ Error: {e}")
+
+# Display output
 if persona:
     st.markdown("### 👤 **Persona Summary**")
 
@@ -84,7 +88,6 @@ if persona:
     }
 
     formatted = ""
-
     for key, label in sections.items():
         match = re.search(f"{key}:(.*?)(?=\n[A-Z][a-z]+:|$)", persona, re.DOTALL)
         if match:
@@ -93,7 +96,7 @@ if persona:
 
     st.markdown(formatted)
 
-    # Copy-friendly box
+    # Copy-friendly view
     with st.expander("📋 View & Copy Raw Persona Text"):
         st.code(persona, language="markdown")
 
