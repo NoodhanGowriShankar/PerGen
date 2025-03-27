@@ -2,23 +2,21 @@ import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-from fpdf import FPDF
-from io import BytesIO
 import re
 
 # Load API Key
 load_dotenv()
 api_key = os.getenv("OPENROUTER_API_KEY")
 
-# Configure OpenRouter client
+# OpenRouter client
 client = OpenAI(
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1",
 )
 
-# Streamlit UI setup
-st.set_page_config(page_title="PersonaGen", page_icon="🧠")
-st.title("🧠 PersonaGen – AI-Powered User Persona Generator")
+# Streamlit UI
+st.set_page_config(page_title="PerGen", page_icon="🧠")
+st.title("🧠 PerGen – AI-Powered User Persona Generator")
 st.markdown("Paste user research notes below to generate a structured persona.")
 
 # Sidebar model selection
@@ -30,11 +28,11 @@ models = {
 model_choice = st.sidebar.selectbox("Choose a model:", list(models.keys()), index=0)
 selected_model = models[model_choice]
 
-# User input
+# Input
 user_input = st.text_area("✍️ Paste user interview notes, survey results, or feedback here:", height=300)
 persona = ""
 
-# Generate persona
+# Generate
 if st.button("Generate Persona"):
     if not user_input.strip():
         st.warning("Please enter some input text.")
@@ -68,7 +66,6 @@ Notes:
                 if response and hasattr(response, "choices") and response.choices:
                     choice = response.choices[0]
 
-                    # Safely extract output depending on model response structure
                     if hasattr(choice, "message") and hasattr(choice.message, "content"):
                         persona = choice.message.content
                     elif hasattr(choice, "text"):
@@ -86,7 +83,7 @@ Notes:
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
-# Display formatted persona
+# Display
 if persona:
     st.markdown("### 👤 **Persona Summary**")
 
@@ -108,29 +105,6 @@ if persona:
 
     st.markdown(formatted)
 
-    # Expandable copy view
+    # Expandable raw view
     with st.expander("📋 View & Copy Raw Persona Text"):
         st.code(persona, language="markdown")
-
-    # Export to PDF button
-    if st.button("📄 Export to PDF"):
-        try:
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", size=12)
-            for line in persona.split('\n'):
-                pdf.multi_cell(0, 10, line)
-
-            # Use BytesIO for in-memory streaming
-            pdf_buffer = BytesIO()
-            pdf.output(pdf_buffer)
-            pdf_buffer.seek(0)
-
-            st.download_button(
-                label="⬇️ Download Persona PDF",
-                data=pdf_buffer,
-                file_name="persona_output.pdf",
-                mime="application/pdf"
-            )
-        except Exception as e:
-            st.error(f"PDF export failed: {e}")
